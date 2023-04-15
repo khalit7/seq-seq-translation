@@ -33,24 +33,72 @@ class RandomSameLengthSampler(Sampler[int]):
         
     def __iter__(self):
         n = len(self.data_source)
-        # randomly select a category from idxs_categories, making sure there are elements left to iterate over
-        found = False
-        for cat_idx in torch.randperm(len(self.idxs_categories)).tolist():
-            found = self.items_left_in_cat[cat_idx]
-            if found:
+        while any(self.items_left_in_cat):
+            # randomly select a category from idxs_categories, making sure there are elements left to iterate over
+            found = False
+            for cat_idx in torch.randperm(len(self.idxs_categories)).tolist():
+                found = self.items_left_in_cat[cat_idx]
+                if found:
+                    break
+            if not found:
                 break
-        if not found: # reset iter and select a random category
-            self._reset_iterators()
-            cat_idx = torch.randint(high=len(self.idxs_categories),size=(1,)).item()
-        
-        # get elements
-        sample_from = self.idxs_categories[cat_idx]
-        for _ in range(self.num_samples):
-            try:
-                yield next(sample_from)
-            except StopIteration:
-                self.items_left_in_cat[cat_idx] = False
-                return # will raise StopIteration exception
+
+            # get elements
+            sample_from = self.idxs_categories[cat_idx]
+            for _ in range(self.num_samples):
+                try:
+                    yield next(sample_from)
+                except StopIteration:
+                    self.items_left_in_cat[cat_idx] = False
+                    yield "STOP BATCH ITERATION FOR THIS CATEGORY"
+                    break
+                    #return # will raise StopIteration exception
+        print("end of while loop")
 
     def __len__(self) -> int:
         return len(self.data_source)
+    
+    
+    
+    
+    
+class CustomBatchSampler(Sampler):
+
+    def __init__(self, sampler, batch_size, drop_last):
+        
+        self.sampler = sampler
+        self.batch_size = batch_size
+        self.drop_last = drop_last
+
+    def __iter__(self) :
+        sampler_iter = iter(self.sampler)
+        while True:
+            try:
+                batch = []
+                for _ in range(self.batch_size):
+                    value = next(sampler_iter)
+                    if value == "STOP BATCH ITERATION FOR THIS CATEGORY":
+                        break
+                    else:
+                        batch.append(value)
+                if len(batch) == 0: # not allowed to yield an empty batch
+                    continue
+                if self.drop_last:
+                    if len(batch) == self.batch_size:
+                        yield batch
+                    else:
+                        continue
+                else: # self.drop_last == False
+                    yield batch
+            except StopIteration:
+                break
+
+    def __len__(self) -> int:
+        # Can only be called if self.sampler has __len__ implemented
+        # We cannot enforce this condition, so we turn off typechecking for the
+        # implementation below.
+        # Somewhat related: see NOTE [ Lack of Default `__len__` in Python Abstract Base Classes ]
+        if self.drop_last:
+            return len(self.sampler) // self.batch_size  # type: ignore[arg-type]
+        else:
+            return (len(self.sampler) + self.batch_size - 1) // self.batch_size  # type: ignore[arg-type]

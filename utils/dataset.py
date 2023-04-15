@@ -88,7 +88,7 @@ def get_data_loader(en_path,ar_path,batch_size,drop_last,x_vocab=None,y_vocab=No
     x_vocab,y_vocab = dataset.get_vocabs()
     
     s = sampler.RandomSameLengthSampler(dataset,num_samples=batch_size)
-    bs = BatchSampler(s,batch_size,drop_last)
+    bs = sampler.CustomBatchSampler(s,batch_size,drop_last)
     
     dl = torch.utils.data.DataLoader(dataset, batch_sampler=bs,collate_fn=partial(_collate_fn,padding_fill_value=y_vocab["<PAD>"]))
     
