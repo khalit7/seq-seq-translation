@@ -65,7 +65,9 @@ class Trainer():
             if self.scheduler:
                 self.scheduler.step()
 
-    def _save_model(self):  
+    def _save_model(self):
+        # if self.model_path directory doesn't exist, create directory
+        os.makedirs(self.model_path,exist_ok=True)
         # move state dict to cpu
         state_dict = {k: v.cpu() for k, v in self.model.state_dict().items()}
         torch.save(state_dict,os.path.join(self.model_path,"model.pth"))
