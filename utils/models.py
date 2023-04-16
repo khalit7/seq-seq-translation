@@ -42,7 +42,7 @@ class Decoder(nn.Module):
         output, (hn, cn) = self.lstm(x,(h_n,c_n))
         logits = self.fc(output)
         
-        return logits
+        return logits.reshape(-1,self.vocab_size)
     
 class seq2seq(nn.Module):
     
