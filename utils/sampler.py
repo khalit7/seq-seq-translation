@@ -4,7 +4,7 @@ import torch
 from torch.utils.data.sampler import BatchSampler,Sampler
 
 from collections import defaultdict
-
+import numpy as np
 
 class RandomSameLengthSampler(Sampler[int]):
     r"""Randomly selects a length category, and samples from it
@@ -23,6 +23,8 @@ class RandomSameLengthSampler(Sampler[int]):
             mapper[len(x)].append(i)
             
         self.original_idxs_categories = mapper.values()
+        
+        self.num_of_examples_per_length = np.array ( [len(x) for x in self.original_idxs_categories] ) # will be used to calculate the number of batches (__len__ function in the customBatchSampler) 
         
         self._reset_iterators()
         
@@ -53,6 +55,8 @@ class RandomSameLengthSampler(Sampler[int]):
                     yield "STOP BATCH ITERATION FOR THIS CATEGORY"
                     break
                     #return # will raise StopIteration exception
+        # reset iterator state
+        self._reset_iterators()
 
     def __len__(self) -> int:
         return len(self.data_source)
@@ -90,6 +94,8 @@ class CustomBatchSampler(Sampler):
                 else: # self.drop_last == False
                     yield batch
             except StopIteration:
+                if not self.drop_last and batch:
+                    yield batch
                 break
 
     def __len__(self) -> int:
@@ -98,6 +104,7 @@ class CustomBatchSampler(Sampler):
         # implementation below.
         # Somewhat related: see NOTE [ Lack of Default `__len__` in Python Abstract Base Classes ]
         if self.drop_last:
-            return len(self.sampler) // self.batch_size  # type: ignore[arg-type]
+            raise Exception("don't know how to calculated :( will implement this when i feel like it")
         else:
+            return np.sum((self.sampler.num_of_examples_per_length + self.batch_size -1)  // self.batch_size)
             return (len(self.sampler) + self.batch_size - 1) // self.batch_size  # type: ignore[arg-type]
