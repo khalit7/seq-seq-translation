@@ -53,7 +53,6 @@ class RandomSameLengthSampler(Sampler[int]):
                     yield "STOP BATCH ITERATION FOR THIS CATEGORY"
                     break
                     #return # will raise StopIteration exception
-        print("end of while loop")
 
     def __len__(self) -> int:
         return len(self.data_source)
