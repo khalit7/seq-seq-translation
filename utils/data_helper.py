@@ -53,7 +53,7 @@ def _get_tokenizers():
 def _build_vocab(data_itr,tokenizer):
     
     config_yaml_path = ( Path(__file__) / "../../config.yaml" ).resolve()
-    with open("config.yaml", 'r') as stream:
+    with open(config_yaml_path, 'r') as stream:
         config = yaml.safe_load(stream)
     
     v = build_vocab_from_iterator(map(tokenizer,data_itr),min_freq=config["min_freq"],specials=["<unk>","<SOS>","<EOS>","<PAD>"])
