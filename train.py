@@ -1,9 +1,7 @@
 import torch
 import yaml
 
-import os
-import sys
-from utils import helper,masked_loss,dataset,models,trainer
+from utils import helper,dataset,trainer
 
 from pathlib import Path
 from torch.utils.tensorboard import SummaryWriter
@@ -28,7 +26,8 @@ if __name__ == '__main__':
     lr = config["lr"]
                        
     model_path = f"weights/{model_name}"
-                       
+    summary_writer_path = f".runs/{model_name}"
+    
     train_dataset_root = Path(config["dataset_root"])/"train"
     ar_path_train  = train_dataset_root / "ar-en.ar"
     en_path_train  = train_dataset_root / "ar-en.en"
@@ -66,7 +65,7 @@ if __name__ == '__main__':
     # loss criterion
     criterion = helper.get_criterion()
     # init tensorbaord summary writer
-    writer = SummaryWriter(f".runs/{model_name}")
+    writer = SummaryWriter(summary_writer_path)
 
     # get the trainer and train
     trainer = trainer.Trainer(model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,model_name,writer)
