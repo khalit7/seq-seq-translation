@@ -1,8 +1,8 @@
 import torch
 from torch.utils.data import DataLoader,Dataset
 
-import data_helper
-import sampler
+from . import data_helper,sampler
+
 from torch.utils.data.sampler import BatchSampler
 
 import itertools

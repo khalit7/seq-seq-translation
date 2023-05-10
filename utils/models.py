@@ -44,7 +44,7 @@ class Decoder(nn.Module):
         
         return logits.reshape(-1,self.vocab_size)
     
-class seq2seq(nn.Module):
+class seq2seq_rnn(nn.Module):
     
     def __init__(self,x_vocab_size,y_vocab_size,embed_size,hidden_size,num_layers):
         super().__init__()
@@ -86,7 +86,7 @@ class Node():
         return self.acc_prob/counter
     
     
-class InferenceSeq2seq(seq2seq):
+class InferenceSeq2seq_rnn(seq2seq_rnn):
     
     def __init__(self,x_vocab_size,y_vocab_size,embed_size,hidden_size,num_layers,y_vocab,k=5):
         super().__init__(x_vocab_size,y_vocab_size,embed_size,hidden_size,num_layers)

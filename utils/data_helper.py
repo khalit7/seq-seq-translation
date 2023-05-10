@@ -1,9 +1,9 @@
 import re
-
+from pathlib import Path
+import yaml
 from torchtext.data import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
 
-import constants as CONSTANTS
 
 
 
@@ -51,7 +51,12 @@ def _get_tokenizers():
     return english_tokenizer,arabic_tokenizer
 
 def _build_vocab(data_itr,tokenizer):
-    v = build_vocab_from_iterator(map(tokenizer,data_itr),min_freq=CONSTANTS.min_freq,specials=["<unk>","<SOS>","<EOS>","<PAD>"])
+    
+    config_yaml_path = ( Path(__file__) / "../../config.yaml" ).resolve()
+    with open("config.yaml", 'r') as stream:
+        config = yaml.safe_load(stream)
+    
+    v = build_vocab_from_iterator(map(tokenizer,data_itr),min_freq=config["min_freq"],specials=["<unk>","<SOS>","<EOS>","<PAD>"])
     v.set_default_index(v["<unk>"])
     
     return v
