@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class Trainer():
-    def __init__(self,model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,model_name,writer,starting_epoch=1):
+    def __init__(self,model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,checkpoint_path,model_name,writer,continue_training=False):
         
         self.model = model
         self.train_loader = train_loader
@@ -28,8 +28,9 @@ class Trainer():
         self.criterion = criterion
         self.model_name = model_name
         self.model_path = model_path
+        self.checkpoint_path = checkpoint_path
         self.writer = writer
-        self.starting_epoch=starting_epoch
+        self.starting_epoch=1
         
         self.min_val_loss = np.inf
                 
@@ -37,16 +38,15 @@ class Trainer():
         self.num_steps_val = len(self.val_loader)
             
             
-        if self.starting_epoch == 0 :
-            raise Exception(f"cannot start at epoch 0, starting epoch must be 1 or higher")
-        if self.starting_epoch > 1: # continuing training ... load latest model
-            self.model.load_state_dict(torch.load(model_path))
+        if continue_training: # load checkpoint
+            self._load_checkpoint()
+            
             
         # send model to device
         self.model.to(self.device)
         
     def train(self):
-        
+        self._save_checkpoint(0)
         print(f"TRAINING STARTED using device = {self.device} .... training the model {self.model_name}, the training will continue for {self.number_of_epochs} epochs",end="\n \n")
         for e in range(self.starting_epoch,self.number_of_epochs+1):
             
@@ -63,7 +63,7 @@ class Trainer():
             if epoch_loss < self.min_val_loss:
                 print(" Saving best model so far ...",end=" ")
                 # save model
-                self._save_model()
+                self._save_checkpoint(e)
                 # update min loss
                 self.min_val_loss = epoch_loss
             
@@ -72,12 +72,39 @@ class Trainer():
             if self.scheduler:
                 self.scheduler.step()
 
-    def _save_model(self):
-        # if self.model_path directory doesn't exist, create directory
-        os.makedirs(self.model_path,exist_ok=True)
-        # move state dict to cpu
-        state_dict = {k: v.cpu() for k, v in self.model.state_dict().items()}
-        torch.save(state_dict,os.path.join(self.model_path,"model.pth"))
+    # # this function was replaced by _save_checkpoint
+    # def _save_model(self):
+    #     # if self.model_path directory doesn't exist, create directory
+    #     os.makedirs(self.model_path,exist_ok=True)
+    #     # move state dict to cpu
+    #     state_dict = {k: v.cpu() for k, v in self.model.state_dict().items()}
+    #     torch.save(state_dict,os.path.join(self.model_path,"model.pth"))
+        
+    def _save_checkpoint(self,EPOCH):
+        
+        os.makedirs(self.checkpoint_path,exist_ok=True)
+        
+        model_state_dict = {k: v.cpu() for k, v in self.model.state_dict().items()}
+        optimizer_state_dict = self.optimizer.state_dict()
+        scheduler_state_dict = None if self.scheduler is None else self.scheduler.state_dict()
+        torch.save({
+            'epoch': EPOCH,
+            'model_state_dict': model_state_dict,
+            'optimizer_state_dict': optimizer_state_dict,
+            'scheduler_state_dict': scheduler_state_dict,
+            }, os.path.join(self.checkpoint_path,"ckpt.pth"))
+        
+    def _load_checkpoint(self):
+        ckpt = torch.load(os.path.join(self.checkpoint_path,"ckpt.pth"))
+        
+        self.model.load_state_dict(ckpt['model_state_dict'])
+        self.optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+        self.starting_epoch = ckpt["epoch"]
+        if ckpt['scheduler_state_dict'] is None:
+            self.scheduler = None
+        else:
+            self.scheduler.load_state_dict(ckpt['scheduler_state_dict'])
+        
         
     def _train_epoch(self,epoch):
         self.model.train()
