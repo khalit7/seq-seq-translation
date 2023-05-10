@@ -22,10 +22,12 @@ if __name__ == '__main__':
     hidden_size = config["hidden_size"]
     num_layers = config["num_layers"]
     number_of_epochs = config["number_of_epochs"]
-    scheduler = config["scheduler"]
+    scheduler_str = config["scheduler"]
     lr = config["lr"]
+    is_continue_training = config["is_continue_training"]
                        
     model_path = f"weights/{model_name}"
+    checkpoint_path = f"checkpoint/{model_name}"
     summary_writer_path = f".runs/{model_name}"
     
     train_dataset_root = Path(config["dataset_root"])/"train"
@@ -62,11 +64,13 @@ if __name__ == '__main__':
                        
     # get optimizer
     optimizer = helper.get_optimizer(model,lr)
+    # get scheduler
+    scheduler = helper.get_scheduler_by_name(scheduler_str,optimizer)
     # loss criterion
     criterion = helper.get_criterion()
     # init tensorbaord summary writer
     writer = SummaryWriter(summary_writer_path)
 
     # get the trainer and train
-    trainer = trainer.Trainer(model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,model_name,writer)
+    trainer = trainer.Trainer(model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,checkpoint_path,model_name,writer,continue_training=is_continue_training)
     trainer.train()
