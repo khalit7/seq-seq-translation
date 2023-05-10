@@ -16,4 +16,4 @@ drop_last: False
 number_of_epochs: 10
 lr: 0.05
 criterion: "masked_crossEntropyLoss"
-scheduler: "None"
+scheduler: null
