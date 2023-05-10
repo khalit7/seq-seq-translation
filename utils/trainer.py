@@ -81,16 +81,16 @@ class Trainer():
             # get x_target and y_true
             x_target = y[:,0:-1]
             y_true   = y[:,1:].flatten()
+            mask = mask[:,1:].flatten()
             # send tensors to device
-            x_source,x_target,y_true,mask = x_source.to(self.device),x_target.to(self.device),y_true.to(self.device),mask[:,1:].to(self.device).flatten()
+            x_source,x_target,y_true,mask = x_source.to(self.device),x_target.to(self.device),y_true.to(self.device),mask.to(self.device)
             # get model's predicitions
             y_pred = self.model(x_source,x_target)
             
             # calculate loss
             loss = self.criterion(y_pred,y_true,mask)
-            
             # reigister running loss
-            step_loss = loss.detach().item()
+            step_loss = loss.detach().cpu().item()
             self.writer.add_scalar("train_loss_per_step",step_loss,(self.num_steps_train*(epoch-1)) + i)
             running_loss.append(step_loss)
             
@@ -100,6 +100,9 @@ class Trainer():
             
             # empty the gradients
             self.optimizer.zero_grad()
+            
+            # delete device tensors to free up memory
+            del x_source,x_target,y_true,mask,y_pred,loss
         
         epoch_loss = np.mean(running_loss)
         return epoch_loss
@@ -113,8 +116,9 @@ class Trainer():
             # get x_target and y_true
             x_target = y[:,0:-1]
             y_true   = y[:,1:].flatten()
+            mask = mask[:,1:].flatten()
             # send tensors to device
-            x_source,x_target,y_true,mask = x_source.to(self.device),x_target.to(self.device),y_true.to(self.device),mask[:,1:].to(self.device).flatten()
+            x_source,x_target,y_true,mask = x_source.to(self.device),x_target.to(self.device),y_true.to(self.device),mask.to(self.device)
             
             with torch.no_grad():
                 # get model's predicitions
@@ -124,9 +128,12 @@ class Trainer():
                 loss = self.criterion(y_pred,y_true,mask)
 
                 # reigister running loss
-                step_loss = loss.detach().item()
+                step_loss = loss.detach().cpu().item()
                 self.writer.add_scalar("val_loss_per_step",step_loss,(self.num_steps_val*(epoch-1)) + i)
                 running_loss.append(step_loss)
+                
+            # delete device tensors to free up memory
+            del x_source,x_target,y_true,mask,y_pred,loss
         
         epoch_loss = np.mean(running_loss)
         return epoch_loss
