@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class Trainer():
-    def __init__(self,model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,model_name,writer):
+    def __init__(self,model,train_loader,val_loader,number_of_epochs,criterion,optimizer,scheduler,device,model_path,model_name,writer,starting_epoch=1):
         
         self.model = model
         self.train_loader = train_loader
@@ -29,11 +29,18 @@ class Trainer():
         self.model_name = model_name
         self.model_path = model_path
         self.writer = writer
+        self.starting_epoch=starting_epoch
         
         self.min_val_loss = np.inf
                 
         self.num_steps_train = len(self.train_loader)
         self.num_steps_val = len(self.val_loader)
+            
+            
+        if self.starting_epoch == 0 :
+            raise Exception(f"cannot start at epoch 0, starting epoch must be 1 or higher")
+        if self.starting_epoch > 1: # continuing training ... load latest model
+            self.model.load_state_dict(torch.load(model_path))
             
         # send model to device
         self.model.to(self.device)
@@ -41,7 +48,7 @@ class Trainer():
     def train(self):
         
         print(f"TRAINING STARTED using device = {self.device} .... training the model {self.model_name}, the training will continue for {self.number_of_epochs} epochs",end="\n \n")
-        for e in range(1,self.number_of_epochs+1):
+        for e in range(self.starting_epoch,self.number_of_epochs+1):
             
             print(f"    epoch #{e}")
             
