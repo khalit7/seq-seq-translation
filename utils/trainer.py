@@ -47,7 +47,7 @@ class Trainer():
         
     def train(self):
         self._save_checkpoint(0)
-        print(f"TRAINING STARTED using device = {self.device} .... training the model {self.model_name}, the training will continue for {self.number_of_epochs} epochs",end="\n \n")
+        print(f"TRAINING STARTED using device = {self.device} .... training the model {self.model_name}, the training will continue for {self.number_of_epochs} epochs. We are starting with epoch {self.starting_epoch}",end="\n \n")
         for e in range(self.starting_epoch,self.number_of_epochs+1):
             
             print(f"    epoch #{e}")
