@@ -137,6 +137,7 @@ class Trainer():
             
             # delete device tensors to free up memory
             del x_source,x_target,y_true,mask,y_pred,loss
+            torch.cuda.empty_cache()
         
         epoch_loss = np.mean(running_loss)
         return epoch_loss
@@ -168,6 +169,7 @@ class Trainer():
                 
             # delete device tensors to free up memory
             del x_source,x_target,y_true,mask,y_pred,loss
-        
+            torch.cuda.empty_cache()
+            
         epoch_loss = np.mean(running_loss)
         return epoch_loss
