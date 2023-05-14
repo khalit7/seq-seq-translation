@@ -75,7 +75,7 @@ def _get_mask(Y,padding_fill_value):
 def _collate_fn(batch,padding_fill_value):
     # get X and Y
     X = torch.concat( [torch.unsqueeze(torch.tensor(x[0]), 0) for x in batch] ,dim=0 )
-    Y = torch.tensor(list(itertools.zip_longest(*[ x[1] for x in batch  ], fillvalue=3))).T
+    Y = torch.tensor(list(itertools.zip_longest(*[ x[1] for x in batch  ], fillvalue=padding_fill_value))).T
     # get mask
     mask = torch.tensor(_get_mask(Y,padding_fill_value))
     
