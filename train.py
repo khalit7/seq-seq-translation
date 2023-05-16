@@ -26,9 +26,11 @@ if __name__ == '__main__':
     scheduler_str = config["scheduler"]
     lr = config["lr"]
     is_continue_training = config["is_continue_training"]
-                       
-    model_path = f"weights/{model_name}"
-    checkpoint_path = f"checkpoint/{model_name}"
+    root_dir = Path(config["root_dir"])
+
+    model_path = root_dir / f"weights/{model_name}"
+    checkpoint_path = root_dir / f"checkpoint/{model_name}"
+
     summary_writer_path = f".runs/{model_name}"
     
     train_dataset_root = Path(config["dataset_root"])/"train"
