@@ -12,7 +12,8 @@ from torch.utils.tensorboard import SummaryWriter
 
 if __name__ == '__main__':
     
-    with open("config.yaml", 'r') as stream:
+    config_yaml_path = ( Path(__file__) / "../config.yaml" ).resolve()
+    with open(config_yaml_path, 'r') as stream:
         config = yaml.safe_load(stream)
     # get hyperparameters
     model_name = config["model_name"]
