@@ -46,7 +46,6 @@ if __name__ == '__main__':
         device_str = "mps"
     else:
         device_str = "cpu"
-    device_str = "cpu"
     device = torch.device(device_str)
     
     # get train and valid data                  

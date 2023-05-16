@@ -8,6 +8,7 @@ num_layers: 1
 min_freq: 10
 
 # data
+#dataset_root: "drive/MyDrive/seq-seq/copyable_dataset"
 dataset_root: "dataset/ordered"
 batch_size: 32
 drop_last: False
