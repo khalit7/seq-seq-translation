@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import os
+import shutil
 
 from torch.utils.data import DataLoader
 from torchtext.datasets import WikiText2
@@ -45,11 +46,16 @@ class Trainer():
         # send model to device
         self.model.to(self.device)
         
+    def _save_copy_of_writer(self,dst_path=""):
+        writer_path = f"{self.writer.log_dir}"
+        # copy files
+        shutil.copytree(writer_path, dst_path)
+            
     def train(self):
         self._save_checkpoint(0)
         print(f"TRAINING STARTED using device = {self.device} .... training the model {self.model_name}, the training will continue for {self.number_of_epochs} epochs. We are starting with epoch {self.starting_epoch}",end="\n \n")
         for e in range(self.starting_epoch,self.number_of_epochs+1):
-            
+            #self._save_copy_of_writer(dst_path = f"copy_of_writer/{self.model_name}/epoch_{e}") # used this if for some reason u need to save a copy of ur writer per epoch
             print(f"    epoch #{e}")
             
             print(f"        training ...",end=" ")
